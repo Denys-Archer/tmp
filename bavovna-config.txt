@@ -1,1 +1,1 @@
-repo = http://localhost:8080
+repo = http://bore.pub:57868

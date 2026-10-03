@@ -337,6 +337,7 @@ void download(const std::string& url, const fs::path& destination, const std::st
 				}
 			}
 			std::uint64_t downloaded = 0;
+			std::uint64_t last_reported_bytes = 0;
 			unsigned last_percent = 101;
 			if (interactive) draw_progress(progress_label, 0, total);
 			stream_body(reader, headers, [&](const char* data, std::size_t size) {
@@ -344,9 +345,11 @@ void download(const std::string& url, const fs::path& destination, const std::st
 				if (!output) throw std::runtime_error("Failed to write downloaded package.");
 				downloaded += size;
 				const auto percent = total == 0 ? 0 : static_cast<unsigned>(std::min<std::uint64_t>(100, downloaded * 100 / total));
-				if (interactive && (total == 0 || percent != last_percent)) {
+				if (interactive && (total == 0 || percent != last_percent ||
+					downloaded - last_reported_bytes >= 64 * 1024)) {
 					draw_progress(progress_label, downloaded, total);
 					last_percent = percent;
+					last_reported_bytes = downloaded;
 				}
 			});
 			output.flush();
